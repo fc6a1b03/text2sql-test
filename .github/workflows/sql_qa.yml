@@ -1,8 +1,11 @@
 name: SQL QA Demo
 on: 
-  push:
-    branches: [ "main" ]
   workflow_dispatch:
+    inputs:
+      question:
+        description: '输入要查询的问题'
+        required: true
+        default: "How many employees are there?"
 
 jobs:
   sql-qa:
@@ -16,12 +19,20 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install dependencies
+      - name: Install system dependencies
+        run: sudo apt-get install -y sqlite3
+
+      - name: Initialize Chinook Database
+        run: | 
+          curl -s https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sql | sqlite3 Chinook.db
+          ls -lh Chinook.db
+
+      - name: Install Python dependencies
         run: |
           pip install langchain langchain-community langchain-openai python-dotenv
 
       - name: Run SQL QA
         env:
-          OPENAI_API_KEY: ${{ secrets.API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
-          python sql_qa_demo.py "How many employees are there?"
+          python sql_qa_demo.py "${{ github.event.inputs.question }}"
