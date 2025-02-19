@@ -29,7 +29,8 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install langchain langchain-community langchain-openai python-dotenv
+          pip install langchain==0.1.16 langchain-community==0.0.31 langchain-openai==0.1.2
+          pip freeze
 
       - name: Run SQL QA
         env:
