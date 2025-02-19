@@ -23,7 +23,7 @@ db = SQLDatabase.from_uri(f"sqlite:///{db_path}")
 # 配置DeepSeek模型
 llm = ChatOpenAI(
     model="deepseek-chat",
-    api_key=os.getenv("DEEPSEEK_API_KEY"),
+    api_key=os.getenv("API_KEY"),
     base_url="https://api.deepseek.com/v1",
     temperature=0  # 确保输出稳定性
 )
