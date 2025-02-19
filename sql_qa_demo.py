@@ -1,39 +1,37 @@
-import sys
+# sql_qa_demo.py
+import re, sys
 from langchain_community.utilities import SQLDatabase
 from langchain.chains import create_sql_query_chain
 from langchain_openai import ChatOpenAI
+from langchain_community.tools.sql_database.tool import QuerySQLDataBaseTool
 import os
 
-def get_question():
-    """处理输入参数"""
-    if len(sys.argv) > 1:
-        return sys.argv[1]
-    else:
-        # 本地运行时提示输入
-        if os.getenv("GITHUB_ACTIONS") != "true":
-            return input("请输入查询问题：")
-        else:
-            print("Error: 需要提供问题参数")
-            sys.exit(1)
+def clean_sql(raw_sql):
+    match = re.search(r'(SELECT|INSERT|UPDATE|DELETE).*', raw_sql, re.IGNORECASE | re.DOTALL)
+    return match.group(0) if match else raw_sql
 
-# 初始化数据库和模型
-db = SQLDatabase.from_uri("sqlite:///Chinook.db") 
-llm = ChatOpenAI(
-    model="deepseek-chat",
-    api_key=os.getenv("API_KEY"),
-    base_url="https://api.deepseek.com/v1"
+db = SQLDatabase.from_uri(
+    "sqlite:///Chinook.db",
+    include_tables=['Employee'],
+    custom_table_info={
+        "Employee": "Table with employees, columns: EmployeeId, LastName, FirstName, ..."
+    }
 )
-chain = create_sql_query_chain(llm, db)
 
-def main():
-    question = get_question()
+llm = ChatOpenAI(model="deepseek-chat", api_key=os.getenv("API_KEY"), base_url="https://api.deepseek.com/v1")
+chain = create_sql_query_chain(llm, db)
+query_tool = QuerySQLDataBaseTool(db=db)
+
+def run_qa(question):
     try:
-        query = chain.invoke({"question": question})
+        raw_query = chain.invoke({"question": question})
+        query = clean_sql(raw_query)
+        print(f"[原始SQL] {raw_query}")  # 调试输出
+        query_tool.invoke(query)  # 验证SQL
         result = db.run(query)
-        print(f"\n=== 执行结果 ===\n问题：{question}\nSQL：{query}\n结果：{result}")
+        print(f"[结果] {result}")
     except Exception as e:
-        print(f"\n错误：{str(e)}")
-        sys.exit(1)
+        print(f"执行失败: {str(e)}")
 
 if __name__ == "__main__":
-    main()
+    run_qa(sys.argv[1] if len(sys.argv)>1 else "How many employees?")
