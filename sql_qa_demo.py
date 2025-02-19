@@ -20,7 +20,7 @@ def get_question():
 db = SQLDatabase.from_uri("sqlite:///Chinook.db") 
 llm = ChatOpenAI(
     model="deepseek-chat",
-    api_key=os.getenv("DEEPSEEK_API_KEY"),
+    api_key=os.getenv("API_KEY"),
     base_url="https://api.deepseek.com/v1"
 )
 chain = create_sql_query_chain(llm, db)
