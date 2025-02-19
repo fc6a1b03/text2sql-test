@@ -1,0 +1,27 @@
+name: SQL QA Demo
+on: 
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  sql-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install langchain langchain-community langchain-openai python-dotenv
+
+      - name: Run SQL QA
+        env:
+          OPENAI_API_KEY: ${{ secrets.API_KEY }}
+        run: |
+          python sql_qa_demo.py "How many employees are there?"
