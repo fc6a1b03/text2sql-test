@@ -36,7 +36,7 @@ def main():
         print(f"[生成SQL] {query}")
         query_tool.invoke(query) 
         result = db.run(query)
-        print(f"[答案] 员工总数: {result[0][0]}")
+        print(f"[答案] {result}")
     except Exception as e:
         print(f"错误: {str(e)}")
 
